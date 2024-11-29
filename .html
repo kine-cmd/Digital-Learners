@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Learners</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #000080;
+      color: white;
+    }
+    header {
+      background-color: #000080;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+    }
+    nav {
+      display: flex;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 0 10px;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    .container {
+      padding: 20px;
+    }
+    .hidden {
+      display: none;
+    }
+    .home, .about, .register, .login, .videos, .your-course {
+      background-color: white;
+      color: black;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    input, button, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #000080;
+    }
+    button {
+      background-color: #000080;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .video-item {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <h1>Digital Learners</h1>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#about">About Us</a>
+      <a href="#register">Register</a>
+      <a href="#login">Login</a>
+      <a href="#videos">Videos</a>
+      <a href="#your-course">Your Course</a>
+    </nav>
+  </header>
+
+  <!-- Home Page -->
+  <section id="home" class="container home">
+    <h2>Welcome to Digital Learners</h2>
+    <iframe 
+      width="100%" 
+      height="400" 
+      src="https://www.youtube.com/embed/IMxDeACOWCE" 
+      title="Digital Marketing Explained" 
+      frameborder="0" 
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+      allowfullscreen>
+    </iframe>
+    <h3>The Importance of Digital Marketing & Earning Potential</h3>
+    <p>In today’s fast-paced and interconnected world, <strong>digital marketing</strong> has become a cornerstone of business growth and success...</p>
+  </section>
+
+  <!-- About Us Page -->
+  <section id="about" class="container about hidden">
+    <h2>About Us</h2>
+    <p>Welcome to Digital Learners – your ultimate platform for mastering digital marketing!</p>
+    <p>With over 5 years of experience, we have helped transform 10,000+ students into successful digital marketing professionals.</p>
+  </section>
+
+  <!-- Register Page -->
+  <section id="register" class="container register hidden">
+    <h2>Register</h2>
+    <form id="registerForm">
+      <input type="text" id="registerName" placeholder="Name" required>
+      <input type="email" id="registerEmail" placeholder="Email" required>
+      <input type="password" id="registerPassword" placeholder="Password" required>
+      <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+      <button type="button" onclick="register()">Register</button>
+      <p class="message" id="registerMessage"></p>
+    </form>
+  </section>
+
+  <!-- Login Page -->
+  <section id="login" class="container login hidden">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Email" required>
+      <input type="password" id="loginPassword" placeholder="Password" required>
+      <button type="button" onclick="login()">Login</button>
+      <p class="message" id="loginMessage"></p>
+    </form>
+  </section>
+
+  <!-- Videos Page -->
+  <section id="videos" class="container videos hidden">
+    <h2>Videos</h2>
+    <div id="videoList"></div>
+  </section>
+
+  <!-- Your Course Page -->
+  <section id="your-course" class="container your-course hidden">
+    <h2>Your Course</h2>
+    <div id="adminControls" class="hidden">
+      <textarea id="videoURL" placeholder="Paste video URL here"></textarea>
+      <button onclick="uploadVideo()">Upload Video</button>
+      <h3>Register User Email for Access</h3>
+      <input type="email" id="emailToRegisterForAccess" placeholder="Email to grant access" />
+      <button onclick="addToAuthorizedUsers()">Grant Access</button>
+    </div>
+    <p id="accessMessage" class="message"></p>
+  </section>
+
+  <script>
+    const adminEmail = "hashirwaqas909@gmail.com";
+    let users = [];
+    let loggedInUser = null;
+    let videos = [];
+    let authorizedUsers = [];  // Store authorized users' emails
+
+    const sections = document.querySelectorAll("section");
+    const navLinks = document.querySelectorAll("nav a");
+
+    navLinks.forEach(link => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = e.target.getAttribute("href").substring(1);
+
+        sections.forEach(section => {
+          if (section.id === target) {
+            section.classList.remove("hidden");
+          } else {
+            section.classList.add("hidden");
+          }
+        });
+
+        if (target === "your-course") {
+          checkAdminAccess();
+        } else if (target === "videos") {
+          displayVideos();
+        }
+      });
+    });
+
+    function register() {
+      const name = document.getElementById("registerName").value;
+      const email = document.getElementById("registerEmail").value;
+      const password = document.getElementById("registerPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const message = document.getElementById("registerMessage");
+
+      if (password !== confirmPassword) {
+        message.textContent = "Passwords do not match!";
+        return;
+      }
+
+      if (users.some(user => user.email === email)) {
+        message.textContent = "Email is already registered!";
+        return;
+      }
+
+      users.push({ name, email, password });
+      message.style.color = "green";
+      message.textContent = "Registration successful! Please login.";
+    }
+
+    function login() {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+      const message = document.getElementById("loginMessage");
+
+      const user = users.find(user => user.email === email && user.password === password);
+
+      if (user) {
+        loggedInUser = user;
+        alert(`Welcome, ${user.name}!`);
+        document.querySelector("#videos").classList.remove("hidden");
+      } else {
+        message.textContent = "Invalid email or password!";
+      }
+    }
+
+    function checkAdminAccess() {
+      const accessMessage = document.getElementById("accessMessage");
+      const adminControls = document.getElementById("adminControls");
+
+      if (loggedInUser && loggedInUser.email === adminEmail) {
+        adminControls.classList.remove("hidden");
+        accessMessage.textContent = "";
+      } else {
+        adminControls.classList.add("hidden");
+        accessMessage.textContent = "Only the admin can upload videos and grant access.";
+      }
+    }
+
+    function uploadVideo() {
+      const videoURL = document.getElementById("videoURL").value;
+      if (videoURL) {
+        videos.push(videoURL);
+        alert("Video uploaded successfully!");
+        document.getElementById("videoURL").value = "";
+        displayVideos();
+      }
+    }
+
+    function displayVideos() {
+      const videoList = document.getElementById("videoList");
+      videoList.innerHTML = "";
+
+      if (videos.length === 0) {
+        videoList.innerHTML = "<p>No videos uploaded yet.</p>";
+      } else {
+        videos.forEach((video, index) => {
+          const videoItem = document.createElement("div");
+          videoItem.className = "video-item";
+          videoItem.innerHTML = `<iframe width="100%" height="200" src="${video}" frameborder="0" allowfullscreen></iframe>`;
+          videoList.appendChild(videoItem);
+        });
+      }
+    }
+
+    function addToAuthorizedUsers() {
+      const email = document.getElementById("emailToRegisterForAccess").value;
+      if (email && !authorizedUsers.includes(email)) {
+        authorizedUsers.push(email);
+        alert(`${email} is now granted access to the videos.`);
+        document.getElementById("emailToRegisterForAccess").value = "";
+      } else {
+        alert("Email already has access or is invalid.");
+      }
+    }
+  </script>
+</body>
+</html>
